@@ -104,7 +104,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, PushNotificationDelegate 
     func application(_ application: UIApplication, performFetchWithCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
 
         let lastViewedBountyId = Defaults[UserDefaultKeyConstants.lastViewedBountyId]
-        let userKeywords = Defaults[UserDefaultKeyConstants.userKeywords]
+        let userKeywords = userSkills()
         
         _ = GitcoinAPIService.shared.provider.rx.request(.bounties(lastViewedBountyId: lastViewedBountyId, userKeywords: userKeywords))
             .map(to: [Bounty].self)

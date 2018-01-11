@@ -267,7 +267,7 @@ extension BountyCardViewController {
         
         // Filter the results so that we only display what we haven't seen
         let lastViewedBountyId = Defaults[UserDefaultKeyConstants.lastViewedBountyId]
-        let userKeywords = Defaults[UserDefaultKeyConstants.userKeywords]
+        let userKeywords = userSkills()
         
         //TODO: Add timeout
         _ = GitcoinAPIService.shared.provider.rx.request(.bounties(lastViewedBountyId: lastViewedBountyId, userKeywords: userKeywords))

@@ -15,7 +15,6 @@ import SwiftyUserDefaults
 import Octokit
 
 class ProfileSignedInViewController: UIViewController {
-
     @IBOutlet weak var signOutButton: UIButton!
     @IBOutlet weak var nameLabel: UILabel!
     @IBOutlet weak var avatarImage: UIImageView!
@@ -97,8 +96,7 @@ class ProfileSignedInViewController: UIViewController {
             .userActionSubject
             .subscribeOn(MainScheduler.instance)
             .subscribe(onNext: { userAction in
-
-                // Reset the last view bounty when logging out
+                
                 switch userAction {
                 case .signedIn(let user):
                     self.populateTagsFromApiKeywords(with: user)
@@ -111,30 +109,39 @@ class ProfileSignedInViewController: UIViewController {
     }
 
     fileprivate func setupTagField() {
+
         tagsField.delimiter = ""
 
-        // Events
+        // store the keywords as a string in the keychain
         tagsField.onDidAddTag = { _, tag in
             let keyword = tag.text.lowercased()
+    
+            guard var keywords = userSkills() else { return }
 
-            if !Defaults[UserDefaultKeyConstants.userKeywords].contains(keyword) {
-                Defaults[UserDefaultKeyConstants.userKeywords].append(keyword)
+            if !keywords.contains(keyword) {
+                keywords.append(keyword)
 
-                logger.verbose("Persisted tag \(keyword) to defaults")
+                setUserSkills(keywords)
 
-                TrackingManager.shared.trackEvent(.didEditKeywords(user: OctokitManager.shared.user.value, action: "added", keyword: keyword, keywords: Defaults[UserDefaultKeyConstants.userKeywords]))
+                logger.verbose("Persisted tag \(keyword) to keychain")
+
+                TrackingManager.shared.trackEvent(.didEditKeywords(user: OctokitManager.shared.user.value, action: "added", keyword: keyword, keywords: keywords))
             }
         }
 
         tagsField.onDidRemoveTag = { _, tag in
             let keyword = tag.text
+            
+            guard var keywords = userSkills() else { return }
 
-            if let removeIndex = Defaults[UserDefaultKeyConstants.userKeywords].index(where: { $0 == keyword }) {
-                Defaults[UserDefaultKeyConstants.userKeywords].remove(at: removeIndex)
+            if let removeIndex = keywords.index(where: { $0 == keyword }) {
+                keywords.remove(at: removeIndex)
+                
+                setUserSkills(keywords)
 
                 logger.verbose("Removed tag \(keyword)")
 
-                TrackingManager.shared.trackEvent(.didEditKeywords(user: OctokitManager.shared.user.value, action: "removed", keyword: keyword, keywords: Defaults[UserDefaultKeyConstants.userKeywords]))
+                TrackingManager.shared.trackEvent(.didEditKeywords(user: OctokitManager.shared.user.value, action: "removed", keyword: keyword, keywords: keywords))
             }
         }
 
@@ -147,8 +154,14 @@ class ProfileSignedInViewController: UIViewController {
             tagsField.leadingAnchor.constraint(equalTo: tagFieldViewContainer.leadingAnchor),
             tagsField.trailingAnchor.constraint(equalTo: tagFieldViewContainer.trailingAnchor)
         ])
-
-        tagsField.addTags(Defaults[UserDefaultKeyConstants.userKeywords])
+        
+        if let keywords = userSkills() {
+            tagsField.addTags(keywords)
+            
+            logger.verbose("Added \(keywords) to tag field")
+        }else{
+            logger.verbose("No tags to set")
+        }
     }
 
     func populateTagsFromApiKeywords(with user: User){

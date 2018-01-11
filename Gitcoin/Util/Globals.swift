@@ -13,13 +13,28 @@ import SCLAlertView
 
 let logger = SwiftyBeaver.self
 
+fileprivate let keychainKeywordKey = "gitcoin-keywords"
+fileprivate let keywordSeperator = "(ツ)" // DONT CHANGE THIS!!!!!!!!!!!!!!!!
+
 /// UserDefaultKeyConstants: All UserDefaults persisted key definitions
 struct UserDefaultKeyConstants {
     static let lastViewedBountyId = DefaultsKey<Int?>("lastViewedBountyId")
     
-    static let userKeywords = DefaultsKey<[String]>("userKeywords")
-    
     static let seenSwipeRightBountyAlert = DefaultsKey<Bool>("seenSwipeRightBountyAlert")
+}
+
+fileprivate func userSkillsString() -> String? {
+    return KeychainSwift().get(keychainKeywordKey)
+}
+
+func userSkills() -> [String]? {
+    return userSkillsString()?.components(separatedBy: keywordSeperator)
+}
+
+func setUserSkills(_ value: [String]){
+    let updatedKeywordString = value.joined(separator: keywordSeperator)
+    
+    KeychainSwift().set(updatedKeywordString, forKey: keychainKeywordKey)
 }
 
 func gitcoinAppearance(kDefaultShadowOpacity: CGFloat = 0.7,
@@ -55,3 +70,5 @@ func gitcoinAppearance(kDefaultShadowOpacity: CGFloat = 0.7,
     
     return SCLAlertView.SCLAppearance(kDefaultShadowOpacity: kDefaultShadowOpacity, kCircleTopPosition: kCircleTopPosition, kCircleBackgroundTopPosition: kCircleBackgroundTopPosition, kCircleHeight: kCircleHeight, kCircleIconHeight: kCircleIconHeight, kTitleTop: kTitleTop, kTitleHeight: kTitleHeight, kWindowWidth: kWindowWidth, kWindowHeight: kWindowHeight, kTextHeight: kTextHeight, kTextFieldHeight: kTextFieldHeight, kTextViewdHeight: kTextViewdHeight, kButtonHeight: kButtonHeight, kTitleFont: kTitleFont, kTextFont: kTextFont, kButtonFont: kButtonFont, showCloseButton: showCloseButton, showCircularIcon: showCircularIcon, shouldAutoDismiss: shouldAutoDismiss, contentViewCornerRadius: contentViewCornerRadius, fieldCornerRadius: fieldCornerRadius, buttonCornerRadius: buttonCornerRadius, hideWhenBackgroundViewIsTapped: hideWhenBackgroundViewIsTapped, contentViewColor: contentViewColor, contentViewBorderColor: contentViewBorderColor, titleColor: titleColor)
 }
+
+
